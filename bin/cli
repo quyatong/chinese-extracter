@@ -1,0 +1,14 @@
+#! /usr/bin/env node
+
+var program = require('commander');
+var main = require('../index');
+
+function projects (val) {
+    return val.split(',');
+}
+
+program
+    .option('-p, --projects <items>', '工程列表', projects)
+    .parse(process.argv);
+
+main.enter(program);

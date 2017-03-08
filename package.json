@@ -1,0 +1,18 @@
+{
+  "name": "chinese-extracter",
+  "version": "0.0.1",
+  "description": "用于抽取中文字符",
+  "main": "index.js",
+  "bin": {
+    "chinese-extracter": "./bin/cli"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "readdir": "0.0.13"
+  }
+}
