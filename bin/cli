@@ -8,6 +8,7 @@ function projects (val) {
 }
 
 program
+    .option('-f, --files <files>', '文件路径', projects)
     .option('-p, --projects <items>', '工程列表', projects)
     .parse(process.argv);
 
