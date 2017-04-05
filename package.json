@@ -1,6 +1,6 @@
 {
   "name": "chinese-extracter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "抽取中文字符的工具",
   "main": "index.js",
   "bin": {
