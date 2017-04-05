@@ -1,7 +1,7 @@
 {
   "name": "chinese-extracter",
   "version": "0.0.1",
-  "description": "用于抽取中文字符",
+  "description": "抽取中文字符的工具",
   "main": "index.js",
   "bin": {
     "chinese-extracter": "./bin/cli"
@@ -11,6 +11,7 @@
   },
   "author": "",
   "license": "ISC",
+  "author": "quyatong@126.com",
   "dependencies": {
     "commander": "^2.9.0",
     "readdir": "0.0.13"

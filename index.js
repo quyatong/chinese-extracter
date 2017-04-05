@@ -17,7 +17,7 @@ var all = [];
  * @param  {string} projectPath 工程目录
  */
 var analyzeFile = function (file, dir, projectPath) {
-
+    var scriptInHtml = false;
     var origin = fs.readFileSync(file, 'utf8');
     content = origin
     // 删除 // 注释
@@ -52,6 +52,7 @@ var analyzeFile = function (file, dir, projectPath) {
 
     origin = origin.split(/\n/g);
 
+
     content.split(/\n/g).forEach(function (line, linenum) {
 
         if (!new RegExp(zhReg).test(line)) {
@@ -62,11 +63,25 @@ var analyzeFile = function (file, dir, projectPath) {
 
         // html
         if(/\.(html|tpl|tmpl)$/g.test(file)) {
-            segs = html(line);
+
+            if (!scriptInHtml) {
+                segs = html(line);
+            }
+            else {
+                segs = js(line);
+            }
+
+            if (/<\s*?script.*?>/.test(line)) {
+                scriptInHtml = true;
+            }
+            else if (/<\s*\/\s*?script.*?>/.test(line)) {
+                scriptInHtml = false;
+            }
         }
-        else if (/\.(js)$/.test(file)) {
+        else if (/\.(js)$/g.test(file)) {
             segs = js(line);
         }
+
         lines.push(
             {
                 linenum: (linenum + 1),
