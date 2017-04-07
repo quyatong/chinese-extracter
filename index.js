@@ -6,7 +6,7 @@ var js = require('./lib/js');
 var utils = require('./lib/utils');
 
 var zhReg = /[\u4e00-\u9fa5]+/g;
-var reg = /((([0-9]+(\.[0-9]+)?(\.[0-9]+)?)|[\u4e00-\u9fa5])+.*([,.，。：:；\-！\/￥%…？、]|([0-9]+(\.[0-9]+)?(\.[0-9]+)?)|[a-zA-Z\u4e00-\u9fa5])*)|(<%.*?%>)|(\{\$.*?\})/g;
+var reg = /((([0-9]+(\.[0-9]+)?(\.[0-9]+)?)|[\u4e00-\u9fa5])+.*([,.，。：:；\-！\/￥%…？、~]|([0-9]+(\.[0-9]+)?(\.[0-9]+)?)|[a-zA-Z\u4e00-\u9fa5])*)|(<%.*?%>)|(\{\$.*?\})/g;
 var all = [];
 
 /**
@@ -29,9 +29,6 @@ var analyzeFile = function (file, dir, projectPath) {
     // 删除 {**} 注释
     .replace(/\{\*.*?\*\}/g, '')
     .replace(/__i18n\((.*?)\)/g, function (match, content) {return content;})
-    // 删除dd5
-    .replace(/dd5/g, '')
-    .replace(/<\s*(br|img|meta|hr)[\s\S]*?>/g, utils.replaceByNewLine)
 
     // // 删除< div xxxx="xxxx" >标签
     // .replace(/\n\s*<\s*?.*?\s*?>/g, replaceByNewLine)
@@ -52,23 +49,22 @@ var analyzeFile = function (file, dir, projectPath) {
 
     origin = origin.split(/\n/g);
 
-
     content.split(/\n/g).forEach(function (line, linenum) {
 
-        if (!new RegExp(zhReg).test(line)) {
+        if (!new RegExp(zhReg).test(line) && (!/<\s*\/?\s*script/g.test(line))) {
             return;
         }
         // console.log(/\.(html|tpl|tmpl)$/g.test(file));
-        var segs = [];
+        var result = {};
 
         // html
         if(/\.(html|tpl|tmpl)$/g.test(file)) {
 
             if (!scriptInHtml) {
-                segs = html(line);
+                result = html(line, origin[linenum]);
             }
             else {
-                segs = js(line);
+                result = js(line, origin[linenum]);
             }
 
             if (/<\s*?script.*?>/.test(line)) {
@@ -79,13 +75,21 @@ var analyzeFile = function (file, dir, projectPath) {
             }
         }
         else if (/\.(js)$/g.test(file)) {
-            segs = js(line);
+            result = js(line, origin[linenum]);
+        }
+        else {
+            result = js(line, origin[linenum]);
+        }
+
+        if (/<\s*\/?\s*script/g.test(line)) {
+            return;
         }
 
         lines.push(
             {
-                linenum: (linenum + 1),
-                content: segs,
+                linenum: linenum,
+                content: result.segs,
+                newLine: result.newLine,
                 origin: origin[linenum],
                 file: path.basename(projectPath) + file.replace(projectPath, ''),
                 project: path.basename(projectPath)
@@ -106,25 +110,30 @@ var analyzePage = function (dir, projectPath) {
     var lang = [];
 
     readDir
-        .readSync(dir, ['**.js', '**.tmpl', '**.tpl', '**.html', '**.css'], readDir.ABSOLUTE_PATHS)
+        .readSync(dir, ['**.js', '**.tmpl', '**.tpl', '**.html'], readDir.ABSOLUTE_PATHS)
         .forEach(function (file) {
             var lines = analyzeFile(file, dir, projectPath);
 
             if (lines.length) {
-                all.push({
-                    project: path.basename(projectPath),
-                    page: file.replace(projectPath, '').split(/\//g).splice(1, 2).join('/'),
-                    lines: lines.map(function (line) {
-                        return line.content;
-                    })
+                lines.forEach(function (line) {
+                    line.content && line.content.forEach(function (seg) {
+                        lang.push({
+                            zh: seg,
+                            pt: '',
+                            en: ''
+                        });
+                    });
                 });
             }
 
-            lang = lang.concat(utils.handleFile(file, lines));
+            utils.handleFile(file, lines);
         });
 
     if (lang.length) {
-        fs.writeFileSync(dir + '/lang.json', JSON.stringify(lang, null, 2));
+
+
+
+        fs.writeFileSync(dir + '/lang.json', JSON.stringify(utils.unique(lang), null, 2));
     }
 };
 
